@@ -1,6 +1,10 @@
 package main
 
 import (
+	//"bytes"
+	"context"
+	//"encoding/json"
+
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 )
@@ -8,14 +12,14 @@ import (
 type Headers struct {}
 type Response events.APIGatewayProxyResponse
 
-func Handler() (Response, error) {
+func Handler(ctx context.Context, req events.APIGatewayProxyRequest) (Response, error) {
 	return Response{
 		IsBase64Encoded: false,
 		StatusCode: 200,
 		Headers: map[string]string{
-			"Content-Type":           "application/json",
+			"Content-Type":           "plain/text",
 		},
-		Body: "Go Serverless v1.0! Your function executed successfully!",
+		Body: req.Body,
 	}, nil
 }
 

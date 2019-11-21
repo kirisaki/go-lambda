@@ -61,7 +61,7 @@ functions:
     events:
       - http:
           path: lambda
-          method: get
+          method: post
 #      - s3: ${env:BUCKET}
 #      - schedule: rate(10 minutes)
 #      - sns: greeter-topic
