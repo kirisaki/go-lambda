@@ -88,6 +88,10 @@ func free(x Expr) Names {
 	switch y := x.(type) {
 	case Var:
 		return Names{y.name}
+	case Lam:
+		return remove(y.name, free(y.expr))
+	case App:
+		return union(free(y.f), free(y.arg))
 	default:
 		panic("")
 	}
