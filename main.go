@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"sort"
 	//"context"
 	//"encoding/json"
 
@@ -17,12 +18,26 @@ type Request struct {
 
 type Name string
 
+type Names []Name
+
+func (xs Names) Len() int{
+	return len(xs)
+}
+
+func (xs Names) Less(i, j int) bool {
+	return xs[i] < xs[j]
+}
+
+func (xs Names) Swap(i, j int) {
+	xs[i], xs[j] = xs[j], xs[i]
+}
+
 type Var struct {
-	name string
+	name Name
 }
 
 type Lam struct {
-	name string
+	name Name
 	expr Expr
 }
 
@@ -54,6 +69,56 @@ func (x App) reduce() Expr {
 	}
 }
 
+func subst(x Name, s Expr, y Expr) Expr {
+	switch z := y.(type) {
+	case Var:
+		if x == z.name {
+			return s
+		} else {
+			return y
+		}
+	case Lam:
+		return s
+	default:
+		panic("")
+	}
+}
+
+func free(x Expr) Names {
+	switch y := x.(type) {
+	case Var:
+		return Names{y.name}
+	default:
+		panic("")
+	}
+}
+
+
+func remove(x Name, xs Names) Names {
+	res := Names{}
+	for _, v := range xs {
+		if v != x {
+			res = append(res, v)
+		}
+	}
+	return res
+}
+
+func union(xs Names, ys Names) Names {
+	zs := append(xs, ys...)
+	sort.Sort(zs)
+	res := Names{}
+	prev := Name("")
+	for _, v := range zs{
+		if prev != v{
+			res = append(res, v)
+		}
+		prev = v
+	}
+	return res
+}
+
+
 /*
 func Handler(ctx context.Context, gwreq events.APIGatewayProxyRequest) (Response, error) {
 	body := ([]byte)(gwreq.Body)
@@ -77,6 +142,6 @@ func main() {
 
 */
 func main(){
-	x := App{Lam{"x", Var{"x"}}, Var{"y"}}
-	fmt.Println(x.reduce())
+	x := union(Names{"x","a","b"}, Names{"b", "c"})
+	fmt.Println(x)
 }
