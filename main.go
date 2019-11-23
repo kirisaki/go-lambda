@@ -60,13 +60,15 @@ func (x Lam) reduce() Expr {
 }
 
 func (x App) reduce() Expr {
-	f := x.f.reduce()
-	arg := x.arg.reduce()
-	switch f.(type) {
+	switch g := x.f.(type) {
+	case Var:
+		return App{g, x.arg.reduce()}
 	case Lam:
-		return f
+		return subst(g.name, x.arg.reduce(), g.expr.reduce())
+	case App:
+		return App{x.f.reduce(), x.arg.reduce()}.reduce()
 	default:
-		return App{f, arg}
+		panic("")
 	}
 }
 
@@ -170,6 +172,6 @@ func main() {
 
 */
 func main(){
-	x := union(Names{"x","a","b"}, Names{"b", "c"})
+	x := (App{Lam{"x", Var{"x"}}, Var{"y"}}).reduce()
 	fmt.Println(x)
 }
