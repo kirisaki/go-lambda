@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"sort"
+	"strconv"
 	//"context"
 	//"encoding/json"
 
@@ -13,7 +14,7 @@ import (
 type Headers struct {}
 //type Response events.APIGatewayProxyResponse
 type Request struct {
-	Src string `json:src`
+	Src string `json:"src"`
 }
 
 type Name string
@@ -69,6 +70,8 @@ func (x App) reduce() Expr {
 	}
 }
 
+var cnt = 0
+
 func subst(x Name, s Expr, y Expr) Expr {
 	switch z := y.(type) {
 	case Var:
@@ -78,7 +81,20 @@ func subst(x Name, s Expr, y Expr) Expr {
 			return y
 		}
 	case Lam:
-		return s
+		if x == z.name {
+			return z
+		} else {
+			if !elem(z.name, free(s)) {
+				return Lam{z.name, subst(x, s, z.expr)}
+			} else {
+				n := Name((string)(z.name) + strconv.Itoa(cnt))
+				cnt++
+				return  Lam{n, subst(x, s, subst(z.name, Var{n}, z.expr))}
+			}
+		}
+	case App:
+		return App{subst(x, s, z.f), subst(x, s, z.arg)}
+
 	default:
 		panic("")
 	}
@@ -93,7 +109,7 @@ func free(x Expr) Names {
 	case App:
 		return union(free(y.f), free(y.arg))
 	default:
-		panic("")
+		return Names{}
 	}
 }
 
@@ -122,6 +138,14 @@ func union(xs Names, ys Names) Names {
 	return res
 }
 
+func elem(x Name, xs Names) bool {
+	for _, v := range xs {
+		if x == v {
+			return true
+		}
+	}
+	return false
+}
 
 /*
 func Handler(ctx context.Context, gwreq events.APIGatewayProxyRequest) (Response, error) {
