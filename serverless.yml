@@ -23,7 +23,7 @@ provider:
     - hoge
   usagePlan:
     quota:
-      limit: 10000
+      limit: 100000
       offset: 2
       period: MONTH
     throttle:

@@ -9,9 +9,9 @@ func prettify(expr Expr) string {
 	case Var:
 		return string(e.name)
 	case Lam:
-		return "\\" + string(e.name) + "." + prettify(e.expr)
+		return "(\\" + string(e.name) + "." + prettify(e.expr) + ")"
 	case App:
-		return prettify(e.f) + prettify(e.arg)
+		return "(" + prettify(e.f) + prettify(e.arg) + ")"
 	default:
 		return ""
 	}
