@@ -40,7 +40,7 @@ func main() {
 */
 func main(){
 	//x, err := parse("\\xy.yzw")
-	x, err := parse("(\\xy.yzw)a")
-	fmt.Println(err)
+	x, _ := parse("(\\xy.yxw)ab")
 	fmt.Println(x)
+	fmt.Println(x.reduce())
 }
