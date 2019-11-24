@@ -40,7 +40,8 @@ func main() {
 */
 func main(){
 	//x, err := parse("\\xy.yzw")
-	x, _ := parse("(\\xy.yxw)ab")
+	fmt.Println("(\\xy.yxw)")
+	x, _ := parse("(\\xy.yxw)")
 	fmt.Println(x)
-	fmt.Println(x.reduce())
+	fmt.Println(prettify(x.reduce()))
 }
