@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 )
 
 type Token interface {}
@@ -12,88 +11,63 @@ func parse(str string) (Expr, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(string(rpn))
-	stack := []Token{}
-	var now Expr
+	stack := []Expr{}
 	for _, t := range rpn {
 		switch t {
 		case '\\':
-			end := false
-			for {
-				xs, x, err := popTk(stack)
+			lam := true
+			for lam {
+				xs, x, _ := popExpr(stack)
+				ys, y, err := popExpr(xs)
 				if err != nil {
 					return nil, errors.New("token exhausted")
 				}
-				stack = xs
-				switch y := x.(type) {
-				case Expr:
-					if now == nil {
-						now = y
+				stack = ys
+				if w, ok := x.(Sym); ok {
+					x = Var{Name(string([]rune{w.symbol}))}
+				}
+				if z, ok := y.(Sym); ok {
+					if z.symbol == '.' {
+						vs, v, err := popExpr(stack)
+						if err != nil {
+							return nil, errors.New("argument notfound")
+						}
+						stack = vs
+						if u, ok := v.(Sym); ok {
+							stack = pushExpr(Lam{Name(string([]rune{u.symbol})), x}, stack)
+							lam = false
+						} else {
+							return nil, errors.New("argument must be symbol")
+						}
 					} else {
-						now = App{y, now}
-					}
-				case rune:
-					if y == '.' {
-						end = true
-						break
-					}
-					if now == nil {
-						now = Var{Name(string([]rune{y}))}
-					} else {
-						now = App{Var{Name(string([]rune{y}))}, now}
+						y = Var{Name(string([]rune{z.symbol}))}
+						stack = pushExpr(App{y, x}, stack)
 					}
 				}
-				if end {
-					break
-				}
-			}
-			xs, x, err := popTk(stack)
-			if err != nil {
-				return nil, errors.New("parameters don't exist")
-			}
-			stack = xs
-			switch y := x.(type) {
-			case Expr:
-				return nil, errors.New("expression in lambda")
-			case rune:
-				now = Lam{Name(string([]rune{y})), now}
 			}
 
 		default:
-			stack = pushTk(t, stack)
+			stack = pushExpr(Sym{t}, stack)
 		}
 	}
-	end := false
 	for {
-		xs, x, err := popTk(stack)
-		if err != nil {
-			break
+		xs, x, err1 := popExpr(stack)
+		if err1 != nil {
+			return nil, errors.New("no result")
 		}
-		stack = xs
-		switch y := x.(type) {
-		case Expr:
-			if now == nil {
-				now = y
-			} else {
-				now = App{y, now}
-			}
-		case rune:
-			if y == '.' {
-				end = true
-				break
-			}
-			if now == nil {
-				now = Var{Name(string([]rune{y}))}
-			} else {
-				now = App{now, Var{Name(string([]rune{y}))}}
-			}
-		}
-		if end {
-			break
+		if x0, ok := x.(Sym); ok {
+			x = Var{Name(string([]rune{x0.symbol}))}
+		} 
+		ys, y, err2 := popExpr(xs)
+		if err2 != nil {
+			return x, nil
+		} else {
+			if y0, ok := y.(Sym); ok {
+				y = Var{Name(string([]rune{y0.symbol}))}
+			} 
+			stack = pushExpr(App{y, x}, ys)
 		}
 	}
-
-	return now, nil
 }
 
 func toRpn(str string) ([]rune, error) {
@@ -161,8 +135,11 @@ func toRpn(str string) ([]rune, error) {
 	}
 	for {
 		xs, x, err := pop(stack)
-		if err != nil {
+		if err != nil{
 			break
+		}
+		if x == '(' || x == ')' || x == '\\' || x == '.' {
+			return nil, errors.New("invalid tokens remain")
 		}
 		stack = xs
 		rpn = append(rpn, x)
@@ -186,13 +163,13 @@ func pop(xs []rune) ([]rune, rune, error) {
 	return init, last, nil
 }
 
-func pushTk(x Token, xs []Token) []Token {
+func pushExpr(x Expr, xs []Expr) []Expr {
 	return append(xs, x)
 }
 
-func popTk(xs []Token) ([]Token, Token, error) {
+func popExpr(xs []Expr) ([]Expr, Expr, error) {
 	if len(xs) == 0 {
-		return nil, ' ', errors.New("empty stack")
+		return nil, nil, errors.New("empty stack")
 	}
 	last := xs[len(xs) - 1]
 	init := xs[:len(xs) - 1]

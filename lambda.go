@@ -35,6 +35,10 @@ type App struct {
 	arg Expr
 }
 
+type Sym struct{
+	symbol rune
+}
+
 type Expr interface {
 	reduce() Expr
 }
@@ -58,6 +62,10 @@ func (x App) reduce() Expr {
 	default:
 		panic("")
 	}
+}
+
+func (x Sym) reduce() Expr {
+	return x
 }
 
 var cnt = 0
