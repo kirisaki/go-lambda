@@ -23,12 +23,12 @@ provider:
     - hoge
   usagePlan:
     quota:
-      limit: 1000
+      limit: 10000
       offset: 2
       period: MONTH
     throttle:
-      burstLimit: 1
-      rateLimit: 1
+      burstLimit: 10
+      rateLimit: 10
 
 package:
  exclude:
